@@ -1,0 +1,386 @@
+using System.Net;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace BookStore
+{
+    public class Book
+    {
+        //public string[,] _myBook = new string[20, 3];
+        //public string[,] MBook
+        //{
+        //    get => _myBook;
+        //    set => _myBook = value;
+        //}
+
+        //public string? ParentName { get; set; }
+        public string _parentName = "";
+        public string ParentName
+        {
+            get => _parentName;
+            set => _parentName = value;
+        }
+        public List<string>? State_DisplayName { get; set; }
+    }
+
+*******************************
+    public class Book
+    {
+        private readonly string m_parentName;
+        private List<string> m_state_displayName;
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        private Book() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
+        public Book(string parentName, List<string> state_displayName)
+        {
+            m_parentName = parentName;
+            m_state_displayName = state_displayName;
+        }
+
+        //public string? ParentName { get; set; }
+        public string ParentName
+        {
+            get { return m_parentName; }
+        }
+        public List<string> State_DisplayName => m_state_displayName;
+    }
+*******************************************
+
+    public class BooksStore
+    {
+
+        //private static void LoadURLdata()
+        public static List<Book> GetBooks()
+        {
+            //using var httpClient = new HttpClient();
+            var url = "https://api.actionnetwork.com/web/v1/books";
+            WebRequest request = WebRequest.Create(url);
+            WebResponse response = request.GetResponse();
+            StreamReader reader = new(response.GetResponseStream());
+
+            string data = reader.ReadToEnd();
+            //string[,]? myBook = new string[20, 3];
+            object mb = new Book();
+
+
+            List<string> state_displayName = new List<string>();
+
+            //string[] arr;
+
+            int nIndex = 0;
+            int nIndexStart = 0;
+            int nIndexEnd = 0;
+            int nIndexLoop = 0;
+            int i = 0;
+
+            List<Book> books = new List<Book>
+            {
+                while (nIndexLoop < data.Length)
+                {
+                    try
+                    {
+                        if ((nIndex = data.IndexOf("display_name", nIndexLoop)) > 0)
+                        {
+                            nIndexStart = nIndex + 15;
+                            nIndexEnd = data.IndexOf(@",""", nIndexStart) - 1;
+                            string displayName = data.Substring(nIndexStart, nIndexEnd - nIndexStart);
+
+                            if (displayName != null)
+                            {
+                                nIndex = data.IndexOf("states", nIndexStart);
+                                nIndexStart = nIndex + 10;
+                                nIndexEnd = nIndexStart + 2; // data.IndexOf(@",""", nIndexStart);
+                                string state = data.Substring(nIndexStart, nIndexEnd - nIndexStart);
+
+                                if (state.IndexOf(",", 0) < 0)
+                                {
+                                    nIndex = data.IndexOf("parent_name", nIndexLoop);
+                                    nIndexStart = nIndex + 14;
+                                    nIndexEnd = data.IndexOf(@",""", nIndexStart) - 1;
+                                    string parentName = data.Substring(nIndexStart, nIndexEnd - nIndexStart);
+                                    if (parentName != "ul")
+                                    {
+                                        if (state == "CO")
+                                        {
+                                            //test
+                                            Console.WriteLine(i + ".\n" + parentName + ",\n" + displayName + ",\n" + state + ",\n");
+
+                                            //mVarB.MBook[i, 0] = parentName;
+                                            //mVarB.MBook[i, 1] = displayName;
+                                            //mVarB.MBook[i, 2] = state;
+
+                                            //string[] arr = new string[2];
+
+                                            //state_displayName.Add(displayName);
+                                            //state_displayName.Add(state);
+
+                                            //books.Add((IEnumerable<Book>)parentName);
+                                            //books.Insert(i, parentName);
+                                            //books.AddRange((IEnumerable<Book>)state_displayName);
+                                        new Book { ParentName = parentName, State_DisplayName = new List<string> { displayName, state } },
+
+                                        //i++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+
+                nIndexLoop = nIndexEnd;
+                }
+            };
+            return books;
+            MSave(books);
+            
+        }
+
+
+        private static void MSave(List<Book> lst)
+        {
+            throw new NotImplementedException();
+        }
+
+        //private static void MSave(string[,] arr)
+        private static void MSave(List<string> lst)
+        {
+            int i = 0;
+            string fileName = AppDomain.CurrentDomain.BaseDirectory + @"result.txt";
+            FileStream StreamSave = new(fileName, FileMode.OpenOrCreate);
+            string parentName = "";
+            try
+            {
+                var mVarB = new Book();
+
+                using StreamWriter writer = new(StreamSave);
+                List<Book> books = GetBooks();
+
+                var bookQuery =
+                    from Book in books
+                        //let grp = (int)Book.ParentName.Average()
+                    group books by parentName into g
+                    orderby g.Key
+                    select g;
+
+                // Execute the query.
+                foreach (var bookGroup in bookQuery)
+                {
+                    foreach (var book in bookGroup)
+                    {
+                        //writer.WriteLine("{" + lst[i, 0] + "}\n" + "{" + lst[i, 1] + "} " + "{" + lst[i, 1] + "}\n");
+                        writer.WriteLine("{" + book.GetRange(i, 1) + "}\n" + "{" + book.GetRange(i, 2) + "} " + "{" + book.GetRange(i, 3) + "}\n");
+                    }
+                }
+
+                //for (i = 0; i < lst.Length - 1; i++)
+                //{
+                //    if (lst[i, 0] != null)
+                //    {
+                //        writer.WriteLine("{" + lst[i, 0] + "}\n" + "{" + lst[i, 1] + "} " + "{" + lst[i, 1] + "}\n");
+                //    }
+
+                //    //arr[i, 0] = arr[i, 0];
+                //}
+            }
+            catch (Exception exp)
+            {
+                Console.WriteLine(exp.Message);
+            }
+        }
+
+        public static void Main()
+        {
+            //LoadURLdata();
+
+            GetBooks();
+            //MSave(mVarB.MBook);
+        }
+    }
+}
+
+***************************
+using System.Net;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace BookStore
+{
+    public class Book
+    {
+        //public string[,] _myBook = new string[20, 3];
+        //public string[,] MBook
+        //{
+        //    get => _myBook;
+        //    set => _myBook = value;
+        //}
+
+
+        //public string? _parentName;
+        //public string ParentName
+        //{
+        //    get => _parentName;
+        //    set => _parentName = value;
+        //}
+        public string? ParentName { get; set; }
+        public List<string>? State_DisplayName { get; set; }
+
+    }
+
+    public class BooksStore
+    {
+        public static List<Book> GetBooks(string[,] arr)
+        {
+            List<Book> books = new List<Book> { };
+            for (int i = 0; i < arr.GetLength(0); i++)
+            {
+                //new Book { ParentName = arr[i, 0], State_DisplayName = new List<string> { arr[i, 1], arr[i, 2] } };
+                books.Add(new Book() { ParentName = arr[i, 0], State_DisplayName = new List<string> { arr[i, 1], arr[i, 2] } });
+
+            };
+            
+            return books;
+        }
+
+        private static void LoadURLdata()
+        //public static List<Book> GetBooks()
+        {
+            //using var httpClient = new HttpClient();
+            var url = "https://api.actionnetwork.com/web/v1/books";
+            WebRequest request = WebRequest.Create(url);
+            WebResponse response = request.GetResponse();
+            StreamReader reader = new(response.GetResponseStream());
+
+            string data = reader.ReadToEnd();
+            string[,]? arr = new string[20, 3];
+
+            //List<Book> books = new List<Book>();
+            int nIndex = 0;
+            int nIndexStart = 0;
+            int nIndexEnd = 0;
+            int nIndexLoop = 0;
+            int i = 0;
+
+            while (nIndexLoop < data.Length)
+            {
+                try
+                {
+                    //var mVarB = new Book();
+
+                    if ((nIndex = data.IndexOf("display_name", nIndexLoop)) > 0)
+                    {
+                        nIndexStart = nIndex + 15;
+                        nIndexEnd = data.IndexOf(@",""", nIndexStart) - 1;
+                        string displayName = data.Substring(nIndexStart, nIndexEnd - nIndexStart);
+
+                        if (displayName != null)
+                        {
+                            nIndex = data.IndexOf("states", nIndexStart);
+                            nIndexStart = nIndex + 10;
+                            nIndexEnd = nIndexStart + 2; // data.IndexOf(@",""", nIndexStart);
+                            string state = data.Substring(nIndexStart, nIndexEnd - nIndexStart);
+
+                            if (state.IndexOf(",", 0) < 0)
+                            {
+                                nIndex = data.IndexOf("parent_name", nIndexLoop);
+                                nIndexStart = nIndex + 14;
+                                nIndexEnd = data.IndexOf(@",""", nIndexStart) - 1;
+                                string parentName = data.Substring(nIndexStart, nIndexEnd - nIndexStart);
+
+                                if (parentName != "ul")
+                                {
+                                    if (state == "CO")
+                                    {
+                                        //test
+                                        Console.WriteLine(i + ".\n" + parentName + ",\n " + displayName + ", " + state + ",\n ");
+
+                                        //mVarB.MBook[i, 0] = parentName;
+                                        //mVarB.MBook[i, 1] = displayName;
+                                        //mVarB.MBook[i, 2] = state;
+
+                                        arr[i, 0] = parentName;
+                                        arr[i, 1] = displayName;
+                                        arr[i, 2] = state;
+
+                                        i++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+                nIndexLoop = nIndexEnd;
+            }
+            MSave(arr);
+        }
+
+        private static void MSave(string[,] arr)
+        //private static void MSave(List<Book> lst)
+        {
+            int i = 0;
+            string fileName = AppDomain.CurrentDomain.BaseDirectory + @"result.txt";
+            FileStream StreamSave = new(fileName, FileMode.OpenOrCreate);
+            //string parentName = "";
+            try
+            {
+                //var mVarB = new Book();
+
+                using StreamWriter writer = new(StreamSave);
+                List<Book> books = GetBooks(arr);
+
+                var bookQuery =
+                    from book in books
+                    group book by book.ParentName into g
+                    orderby g.Key
+                    select g;
+
+                foreach (var bookGroup in bookQuery)
+                {
+                    foreach (var book in bookGroup)
+                    {
+                        if (book.ParentName != null)
+                        {
+                            writer.WriteLine("{0}\n  {1}  {2}", book.ParentName, book.State_DisplayName[0], book.State_DisplayName[1]);
+                        }
+                    }
+                }
+
+                //for (i = 0; i < lst.Length - 1; i++)
+                //{
+                //    if (lst[i, 0] != null)
+                //    {
+                //        writer.WriteLine("{" + lst[i, 0] + "}\n" + "{" + lst[i, 1] + "} " + "{" + lst[i, 1] + "}\n");
+                //    }
+                //}
+            }
+            catch (Exception exp)
+            {
+                Console.WriteLine(exp.Message);
+            }
+        }
+
+        public static void Main()
+        {
+            LoadURLdata();
+
+        }
+    }
+}
+
